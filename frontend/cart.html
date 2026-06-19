@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cart — MarketHub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafb; color: #1a1a1a; }
+    .navbar { background: white; padding: 0.8rem 2rem; display: flex; align-items: center; gap: 1.5rem; height: auto; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 1px solid #e8eaed; }
+    .navbar .logo { color: #169b67; font-size: 24px; font-weight: 800; text-decoration: none; letter-spacing: -0.5px; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 2rem; }
+    .nav-right a { color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-right a:hover { color: #169b67; }
+
+    .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; display: flex; gap: 2rem; align-items: flex-start; }
+
+    /* Cart Items */
+    .cart-main { flex: 1; }
+    .cart-header { background: white; border-radius: 12px 12px 0 0; padding: 1.2rem 1.5rem; font-size: 18px; font-weight: 600; border-bottom: 1px solid #e8eaed; }
+    .cart-item { background: white; padding: 1.2rem 1.5rem; display: flex; gap: 1.2rem; align-items: center; border-bottom: 1px solid #f0f0f0; }
+    .cart-item:last-child { border-bottom: none; border-radius: 0 0 12px 12px; }
+    .item-img { width: 90px; height: 90px; background: #f5f5f5; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 32px; overflow: hidden; flex-shrink: 0; }
+    .item-img img { width: 100%; height: 100%; object-fit: cover; }
+    .item-details { flex: 1; }
+    .item-name { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .item-category { font-size: 12px; color: #999; margin-bottom: 6px; }
+    .item-price { font-size: 16px; font-weight: 700; color: #169b67; }
+    .item-original { font-size: 12px; color: #bbb; text-decoration: line-through; margin-left: 6px; }
+    .item-discount { font-size: 12px; color: #ff6b6b; margin-left: 4px; }
+    .qty-control { display: flex; align-items: center; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; margin-top: 8px; width: fit-content; }
+    .qty-control button { width: 32px; height: 32px; background: #f5f5f5; border: none; font-size: 16px; cursor: pointer; }
+    .qty-control button:hover { background: #efefef; }
+    .qty-control span { width: 40px; text-align: center; font-size: 14px; font-weight: 600; }
+    .item-subtotal { text-align: right; min-width: 100px; }
+    .subtotal-label { font-size: 12px; color: #999; }
+    .subtotal-amount { font-size: 16px; font-weight: 700; color: #169b67; }
+    .remove-btn { background: none; border: none; color: #ff6b6b; font-size: 20px; cursor: pointer; padding: 4px; margin-left: 8px; }
+    .remove-btn:hover { color: #ff5252; }
+
+    .empty-cart { background: white; border-radius: 12px; padding: 4rem; text-align: center; color: #aaa; }
+    .empty-cart .icon { font-size: 60px; margin-bottom: 1rem; }
+    .empty-cart p { font-size: 16px; margin-bottom: 1.5rem; }
+    .empty-cart a { background: #169b67; color: white; padding: 10px 24px; border-radius: 24px; text-decoration: none; font-weight: 600; display: inline-block; }
+
+    /* Order Summary */
+    .summary-box { width: 340px; flex-shrink: 0; background: white; border-radius: 12px; padding: 1.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); position: sticky; top: 80px; border: 1px solid #f0f0f0; }
+    .summary-box h3 { font-size: 14px; color: #999; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 1rem; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; font-weight: 600; }
+    .summary-row { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 10px; color: #666; }
+    .summary-row.total { font-size: 16px; font-weight: 700; color: #1a1a1a; border-top: 1px solid #f0f0f0; padding-top: 10px; margin-top: 6px; }
+    .summary-row.savings { color: #169b67; font-size: 13px; font-weight: 600; }
+
+    .address-section { margin-top: 1.5rem; }
+    .address-section label { font-size: 13px; font-weight: 600; display: block; margin-bottom: 8px; }
+    .address-section textarea { width: 100%; padding: 10px 12px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; resize: vertical; min-height: 80px; outline: none; font-family: inherit; }
+    .address-section textarea:focus { border-color: #169b67; background: #f9fffe; }
+
+    .place-btn { width: 100%; margin-top: 1.5rem; padding: 13px; background: #169b67; color: white; border: none; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .place-btn:hover { background: #138055; }
+    .place-btn:disabled { background: #ddd; cursor: not-allowed; color: #999; }
+
+    .clear-btn { width: 100%; margin-top: 10px; padding: 11px; background: #ffe8e8; color: #ff6b6b; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .clear-btn:hover { background: #ffd4d4; }
+
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #323232; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; display: none; z-index: 999; }
+    .loading { text-align: center; padding: 3rem; color: #888; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="logo" href="/">MarketHub</a>
+  <div class="nav-right">
+    <a href="/">Continue Shopping</a>
+    <a href="/orders">Orders</a>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="cart-main" id="cart-main">
+    <div class="loading">Loading cart...</div>
+  </div>
+
+  <div class="summary-box" id="summary-box" style="display:none">
+    <h3>Price Details</h3>
+    <div class="summary-row"><span>Items</span><span id="s-items">0</span></div>
+    <div class="summary-row"><span>Total MRP</span><span id="s-mrp">₹0</span></div>
+    <div class="summary-row savings"><span>Discount</span><span id="s-discount">-₹0</span></div>
+    <div class="summary-row total"><span>Total</span><span id="s-total">₹0</span></div>
+
+    <div class="address-section">
+      <label>Delivery Address</label>
+      <textarea id="shipping-address" placeholder="Enter full delivery address..."></textarea>
+    </div>
+
+    <button class="place-btn" id="place-btn" onclick="doPlaceOrder()">
+      Place Order
+    </button>
+    <button class="clear-btn" onclick="doClearCart()">Clear Cart</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/api.js"></script>
+<script>
+  if (!isLoggedIn()) window.location.replace('/login');
+
+  function logout() { clearAuth(); window.location.replace('/login'); }
+
+  function showToast(msg, duration = 2500) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', duration);
+  }
+
+  async function loadCart() {
+    const main = document.getElementById('cart-main');
+    const summaryBox = document.getElementById('summary-box');
+
+    const cart = await getCart();
+
+    if (!cart.items || cart.items.length === 0) {
+      summaryBox.style.display = 'none';
+      main.innerHTML = `
+        <div class="empty-cart">
+          <div class="icon">🛒</div>
+          <p>Your cart is empty!</p>
+          <a href="/">Shop Now</a>
+        </div>`;
+      return;
+    }
+
+    summaryBox.style.display = 'block';
+
+    // Calculate MRP (before discount)
+    let totalMRP = 0;
+    cart.items.forEach(item => {
+      totalMRP += parseFloat(item.product_detail.price) * item.quantity;
+    });
+    const totalFinal = parseFloat(cart.total_price);
+    const savings = totalMRP - totalFinal;
+
+    // Summary
+    document.getElementById('s-items').textContent = cart.total_items;
+    document.getElementById('s-mrp').textContent = '₹' + totalMRP.toLocaleString('en-IN', {maximumFractionDigits: 0});
+    document.getElementById('s-discount').textContent = '-₹' + savings.toLocaleString('en-IN', {maximumFractionDigits: 0});
+    document.getElementById('s-total').textContent = '₹' + totalFinal.toLocaleString('en-IN', {maximumFractionDigits: 0});
+
+    // Items
+    main.innerHTML = `
+      <div class="cart-header">Cart (${cart.total_items} items)</div>
+      ${cart.items.map(item => `
+        <div class="cart-item" id="item-${item.id}">
+          <div class="item-img">
+            ${item.product_detail.image
+              ? `<img src="http://127.0.0.1:8000${item.product_detail.image}" />`
+              : '🛍️'}
+          </div>
+          <div class="item-details">
+            <div class="item-name">${item.product_detail.name}</div>
+            <div class="item-category">${item.product_detail.category_name}</div>
+            <div>
+              <span class="item-price">₹${parseFloat(item.product_detail.discounted_price).toLocaleString()}</span>
+              ${item.product_detail.discount_percent > 0 ? `
+                <span class="item-original">₹${parseFloat(item.product_detail.price).toLocaleString()}</span>
+                <span class="item-discount">${item.product_detail.discount_percent}% off</span>` : ''}
+            </div>
+            <div class="qty-control">
+              <button onclick="changeQty(${item.id}, ${item.quantity - 1})">−</button>
+              <span>${item.quantity}</span>
+              <button onclick="changeQty(${item.id}, ${item.quantity + 1})">+</button>
+            </div>
+          </div>
+          <div class="item-subtotal">
+            <div class="subtotal-label">Subtotal</div>
+            <div class="subtotal-amount">₹${parseFloat(item.subtotal).toLocaleString('en-IN', {maximumFractionDigits: 0})}</div>
+          </div>
+          <button class="remove-btn" onclick="removeItem(${item.id})" title="Remove">✕</button>
+        </div>`).join('')}`;
+  }
+
+  async function changeQty(item_id, newQty) {
+    if (newQty < 1) {
+      removeItem(item_id);
+      return;
+    }
+    const data = await updateCartItem(item_id, newQty);
+    if (data.error) { showToast('❌ ' + data.error); return; }
+    loadCart();
+  }
+
+  async function removeItem(item_id) {
+    await removeCartItem(item_id);
+    showToast('Item removed');
+    loadCart();
+  }
+
+  async function doClearCart() {
+    if (!confirm('Clear entire cart?')) return;
+    await clearCart();
+    loadCart();
+  }
+
+  async function doPlaceOrder() {
+    const address = document.getElementById('shipping-address').value.trim();
+    if (!address) {
+      showToast('❌ Please enter a delivery address');
+      document.getElementById('shipping-address').focus();
+      return;
+    }
+
+    const btn = document.getElementById('place-btn');
+    btn.textContent = 'Placing Order...';
+    btn.disabled = true;
+
+    const data = await placeOrder(address);
+
+    if (data.id) {
+      showToast('✅ Order placed successfully!');
+      setTimeout(() => window.location.href = '/orders', 1500);
+    } else {
+      const msg = data.error || Object.values(data)[0] || 'Something went wrong';
+      showToast('❌ ' + msg);
+      btn.textContent = 'Place Order';
+      btn.disabled = false;
+    }
+  }
+
+  loadCart();
+</script>
+</body>
+</html>

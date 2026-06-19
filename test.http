@@ -1,0 +1,83 @@
+### Login
+POST http://127.0.0.1:8000/api/users/login/
+Content-Type: application/json
+
+{
+  "username": "basil",
+  "password": "pass1234"
+}
+### Register
+POST http://127.0.0.1:8000/api/users/register/
+Content-Type: application/json
+
+{
+  "username": "basil",
+  "email": "basil@email.com",
+  "password": "pass1234"
+}
+
+### Get cart
+GET http://127.0.0.1:8000/api/cart/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+
+### Add item to cart
+POST http://127.0.0.1:8000/api/cart/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "quantity": 2
+}
+
+### Add iPhone to cart
+POST http://127.0.0.1:8000/api/cart/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "quantity": 1
+}
+
+### Add T-Shirt to cart
+POST http://127.0.0.1:8000/api/cart/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+Content-Type: application/json
+
+{
+  "product_id": 3,
+  "quantity": 2
+}
+
+
+### 1. Add item to cart first
+POST http://127.0.0.1:8000/api/cart/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+Content-Type: application/json
+
+{
+  "product_id": 1,
+  "quantity": 1
+}
+
+### 2. Place order
+POST http://127.0.0.1:8000/api/orders/place/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+Content-Type: application/json
+
+{
+  "shipping_address": "123 Main St, Kochi, Kerala"
+}
+
+### 3. View all my orders
+GET http://127.0.0.1:8000/api/orders/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+
+### 4. View single order
+GET http://127.0.0.1:8000/api/orders/1/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc
+
+### 5. Cancel order
+POST http://127.0.0.1:8000/api/orders/1/cancel/
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzgxMjUzNDUyLCJpYXQiOjE3ODExNjcwNTIsImp0aSI6IjU3MzI0NzA2MTUwNDRhOGJiNDkyNjU5ZGFiMjg2Mjk1IiwidXNlcl9pZCI6IjIifQ.v1coOnsk02tKlV5kXx-FMqbkYNt8Bb7jRzsos7am8Tc

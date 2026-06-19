@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Wishlist — MarketHub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafb; color: #1a1a1a; }
+    .navbar { background: white; padding: 0.8rem 2rem; display: flex; align-items: center; gap: 1.5rem; height: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 1px solid #e8eaed; position: sticky; top: 0; z-index: 100; }
+    .navbar .logo { color: #169b67; font-size: 24px; font-weight: 800; text-decoration: none; letter-spacing: -0.5px; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 2rem; }
+    .nav-right a { color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-right a:hover { color: #169b67; }
+    .cart-btn { background: #e8f5f1; color: #169b67; border: none; padding: 8px 16px; border-radius: 24px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .cart-btn:hover { background: #d0ede8; }
+
+    .container { max-width: 1280px; margin: 2rem auto; padding: 0 1rem; }
+    .page-title { font-size: 28px; font-weight: 700; margin-bottom: 2rem; color: #1a1a1a; }
+
+    .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.5rem; }
+
+    .wish-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.05); transition: all 0.2s; border: 1px solid #f0f0f0; }
+    .wish-card:hover { box-shadow: 0 8px 24px rgba(22, 155, 103, 0.15); transform: translateY(-4px); }
+    .wish-img { width: 100%; height: 200px; background: #f5f5f5; display: flex; align-items: center; justify-content: center; font-size: 52px; overflow: hidden; cursor: pointer; }
+    .wish-img img { width: 100%; height: 100%; object-fit: cover; }
+    .wish-info { padding: 14px; }
+    .wish-category { font-size: 11px; color: #999; margin-bottom: 4px; text-transform: uppercase; letter-spacing: 0.3px; }
+    .wish-name { font-size: 14px; font-weight: 500; margin-bottom: 8px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
+    .wish-name:hover { color: #169b67; }
+    .price-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+    .discounted-price { font-size: 17px; font-weight: 700; color: #169b67; }
+    .original-price { font-size: 12px; color: #bbb; text-decoration: line-through; }
+    .discount-badge { font-size: 11px; color: #ff6b6b; font-weight: 700; }
+    .stock-badge { font-size: 11px; color: #ff6b6b; margin-bottom: 8px; }
+
+    .wish-actions { display: flex; gap: 8px; }
+    .btn-cart { flex: 1; padding: 10px; background: #169b67; color: white; border: none; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-cart:hover { background: #138055; }
+    .btn-cart:disabled { background: #ddd; cursor: not-allowed; color: #999; }
+    .btn-remove { padding: 10px 12px; background: #ffe8e8; color: #ff6b6b; border: none; border-radius: 8px; font-size: 13px; cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn-remove:hover { background: #ffd4d4; }
+
+    .empty { text-align: center; padding: 5rem; color: #aaa; }
+    .empty .icon { font-size: 64px; margin-bottom: 1rem; }
+    .empty p { font-size: 16px; margin-bottom: 1.5rem; }
+    .empty a { background: #169b67; color: white; padding: 10px 24px; border-radius: 24px; text-decoration: none; font-weight: 600; display: inline-block; }
+    .loading { text-align: center; padding: 4rem; color: #888; }
+
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #323232; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; display: none; z-index: 999; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="logo" href="/">MarketHub</a>
+  <div class="nav-right">
+    <a href="/">Shop</a>
+    <a href="/orders">Orders</a>
+    <button class="cart-btn" onclick="window.location.href='/cart'">Cart</button>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">My Wishlist</div>
+  <div id="wishlist-container">
+    <div class="loading">Loading wishlist...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="/static/js/api.js"></script>
+<script>
+  if (!isLoggedIn()) window.location.replace('/login');
+
+  function logout() { clearAuth(); window.location.replace('/login'); }
+
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.style.display = 'block';
+    setTimeout(() => t.style.display = 'none', 2500);
+  }
+
+  async function loadWishlist() {
+    const container = document.getElementById('wishlist-container');
+    const items = await getWishlist();
+
+    if (!items.length) {
+      container.innerHTML = `
+        <div class="empty">
+          <div class="icon">🤍</div>
+          <p>Your wishlist is empty!</p>
+          <a href="/">Browse Products</a>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = `
+      <div class="wishlist-grid">
+        ${items.map(item => {
+          const p = item.product_detail;
+          const outOfStock = p.inventory.stock === 0;
+          return `
+            <div class="wish-card" id="wcard-${item.id}">
+              <div class="wish-img" onclick="window.location.href='/product?slug=${p.slug}'">
+                ${p.image ? `<img src="http://127.0.0.1:8000${p.image}" />` : '🛍️'}
+              </div>
+              <div class="wish-info">
+                <div class="wish-category">${p.category_name}</div>
+                <div class="wish-name" onclick="window.location.href='/product?slug=${p.slug}'">${p.name}</div>
+                <div class="price-row">
+                  <span class="discounted-price">₹${parseFloat(p.discounted_price).toLocaleString()}</span>
+                  ${p.discount_percent > 0 ? `
+                    <span class="original-price">₹${parseFloat(p.price).toLocaleString()}</span>` : ''}
+                </div>
+                ${outOfStock ? `<div class="stock-badge">Out of Stock</div>` : ''}
+                <div class="wish-actions">
+                  <button class="btn-cart" ${outOfStock ? 'disabled' : ''}
+                    onclick="doMoveToCart(${p.id}, ${item.id}, this)">
+                    Add to Cart
+                  </button>
+                  <button class="btn-remove" onclick="doRemove(${p.id}, ${item.id})">Remove</button>
+                </div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  async function doMoveToCart(product_id, item_id, btn) {
+    btn.textContent = 'Adding...';
+    btn.disabled = true;
+    const data = await addToCart(product_id, 1);
+    if (data.error) {
+      showToast('❌ ' + data.error);
+      btn.textContent = '🛒 Add to Cart';
+      btn.disabled = false;
+    } else {
+      showToast('✅ Added to cart!');
+      btn.textContent = '✓ In Cart';
+    }
+  }
+
+  async function doRemove(product_id, item_id) {
+    await toggleWishlist(product_id);
+    document.getElementById(`wcard-${item_id}`).remove();
+    showToast('Removed from wishlist');
+    // Show empty state if no items left
+    if (!document.querySelector('.wish-card')) loadWishlist();
+  }
+
+  loadWishlist();
+</script>
+</body>
+</html>

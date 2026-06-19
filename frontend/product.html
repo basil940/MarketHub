@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product — MarketHub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #f8fafb; color: #1a1a1a; }
+    .navbar { background: white; padding: 0.8rem 2rem; display: flex; align-items: center; gap: 1.5rem; height: auto; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border-bottom: 1px solid #e8eaed; }
+    .navbar .logo { color: #169b67; font-size: 24px; font-weight: 800; text-decoration: none; letter-spacing: -0.5px; }
+    .search-bar { flex: 1; display: flex; max-width: 400px; align-items: center; }
+    .search-bar input { flex: 1; padding: 10px 16px; border: 1px solid #e0e0e0; border-radius: 24px; font-size: 14px; outline: none; background: #f5f5f5; }
+    .search-bar input:focus { background: white; border-color: #169b67; }
+    .search-bar button { margin-left: 10px; padding: 8px 16px; background: #169b67; border: none; border-radius: 24px; cursor: pointer; font-size: 14px; color: white; font-weight: 600; }
+    .nav-right { margin-left: auto; display: flex; align-items: center; gap: 2rem; }
+    .nav-right a { color: #1a1a1a; text-decoration: none; font-size: 14px; font-weight: 500; transition: color 0.2s; }
+    .nav-right a:hover { color: #169b67; }
+    .cart-btn { background: #e8f5f1; color: #169b67; border: none; padding: 8px 16px; border-radius: 24px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .cart-btn:hover { background: #d0ede8; }
+    .cart-count { background: #ff6b6b; color: white; border-radius: 50%; font-size: 11px; padding: 2px 6px; margin-left: 4px; font-weight: 700; }
+
+    .container { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+    .breadcrumb { font-size: 13px; color: #999; margin-bottom: 1.5rem; }
+    .breadcrumb a { color: #169b67; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+
+    .product-detail { background: white; border-radius: 12px; padding: 2.5rem; display: flex; gap: 3rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #f0f0f0; }
+    .product-img-wrap { width: 380px; flex-shrink: 0; }
+    .product-img-wrap .img-box { width: 100%; height: 380px; background: #f5f5f5; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 80px; overflow: hidden; }
+    .product-img-wrap .img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+    .product-info { flex: 1; }
+    .category-tag { font-size: 12px; color: #169b67; background: #e8f5f1; padding: 4px 12px; border-radius: 20px; display: inline-block; margin-bottom: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .product-name { font-size: 26px; font-weight: 700; margin-bottom: 1.2rem; line-height: 1.3; color: #1a1a1a; }
+    .price-section { margin-bottom: 1.5rem; }
+    .discounted-price { font-size: 32px; font-weight: 700; color: #169b67; }
+    .original-price { font-size: 18px; color: #bbb; text-decoration: line-through; margin-left: 12px; }
+    .discount-badge { font-size: 15px; color: #ff6b6b; font-weight: 700; margin-left: 10px; }
+    .stock-info { font-size: 13px; margin-bottom: 1.5rem; padding: 10px 14px; border-radius: 8px; display: inline-block; }
+    .in-stock { background: #e8f5e9; color: #2e7d32; font-weight: 600; }
+    .low-stock { background: #fff8e1; color: #f57f17; font-weight: 600; }
+    .out-stock { background: #ffebee; color: #c62828; font-weight: 600; }
+
+    .description { font-size: 15px; color: #666; line-height: 1.8; margin-bottom: 2rem; border-top: 1px solid #f0f0f0; padding-top: 1.5rem; }
+
+    .qty-row { display: flex; align-items: center; gap: 16px; margin-bottom: 2rem; }
+    .qty-row label { font-size: 15px; font-weight: 600; }
+    .qty-control { display: flex; align-items: center; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; }
+    .qty-control button { width: 38px; height: 38px; background: #f5f5f5; border: none; font-size: 18px; cursor: pointer; transition: all 0.2s; }
+    .qty-control button:hover { background: #efefef; }
+    .qty-control span { width: 48px; text-align: center; font-size: 16px; font-weight: 600; }
+
+    .action-btns { display: flex; gap: 12px; }
+    .btn-cart { flex: 1; padding: 14px; background: #169b67; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-cart:hover { background: #138055; }
+    .btn-cart:disabled { background: #ddd; cursor: not-allowed; color: #999; }
+    .btn-buy { flex: 1; padding: 14px; background: #ff9f00; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .btn-buy:hover { background: #e68900; }
+    .btn-buy:disabled { background: #ddd; cursor: not-allowed; color: #999; }
+
+    .toast { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: #323232; color: white; padding: 12px 24px; border-radius: 8px; font-size: 14px; display: none; z-index: 999; }
+    .loading { text-align: center; padding: 4rem; color: #888; }
+  </style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a class="logo" href="/">MarketHub</a>
+  <div class="search-bar">
+    <input type="text" id="search-input" placeholder="Search anything..." />
+    <button onclick="goSearch()">Search</button>
+  </div>
+  <div class="nav-right">
+    <a href="/orders">Orders</a>
+    <button class="cart-btn" onclick="window.location.href='/cart'">
+      Cart <span class="cart-count" id="cart-count">0</span>
+    </button>
+    <a href="#" onclick="logout()">Logout</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="breadcrumb">
+    <a href="/">Home</a> › <span id="breadcrumb-name">Product</span>
+  </div>
+  <div id="product-container">
+    <div class="loading">Loading product...</div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="js/api.js"></script>
+<script>
+  if (!isLoggedIn()) window.location.replace('/login');
+
+  const slug = new URLSearchParams(window.location.search).get('slug');
+  if (!slug) window.location.replace('/');
+
+  let quantity = 1;
+  let product = null;
+
+  function logout() { clearAuth(); window.location.replace('/login'); }
+
+  function goSearch() {
+    const q = document.getElementById('search-input').value.trim();
+    if (q) window.location.href = `/?search=${q}`;
+  }
+
+  function showToast(msg, duration = 2000) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.style.display = 'block';
+    setTimeout(() => toast.style.display = 'none', duration);
+  }
+
+  function changeQty(delta) {
+    const max = product?.inventory?.stock || 1;
+    quantity = Math.max(1, Math.min(max, quantity + delta));
+    document.getElementById('qty-display').textContent = quantity;
+  }
+
+  async function loadCartCount() {
+    try {
+      const cart = await getCart();
+      document.getElementById('cart-count').textContent = cart.total_items || 0;
+    } catch(e) {}
+  }
+
+  async function doAddToCart() {
+    const btn = document.getElementById('btn-cart');
+    btn.textContent = 'Adding...';
+    btn.disabled = true;
+    const data = await addToCart(product.id, quantity);
+    if (data.error) {
+      showToast('❌ ' + data.error);
+    } else {
+      showToast('✅ Added to cart!');
+      document.getElementById('cart-count').textContent = data.total_items || 0;
+    }
+    btn.textContent = '🛒 Add to Cart';
+    btn.disabled = false;
+  }
+
+  async function doBuyNow() {
+    const btn = document.getElementById('btn-buy');
+    btn.textContent = 'Adding...';
+    btn.disabled = true;
+    const data = await addToCart(product.id, quantity);
+    if (data.error) {
+      showToast('❌ ' + data.error);
+      btn.textContent = 'Buy Now';
+      btn.disabled = false;
+    } else {
+      window.location.href = '/cart';
+    }
+  }
+
+  async function loadProduct() {
+    product = await getProduct(slug);
+    if (product.detail === 'Not found.') {
+      window.location.href = '/';
+      return;
+    }
+
+    document.title = `${product.name} — ShopX`;
+    document.getElementById('breadcrumb-name').textContent = product.name;
+
+    const outOfStock = product.inventory.stock === 0;
+    const lowStock = product.inventory.stock > 0 && product.inventory.stock < 5;
+
+    let stockHTML = '';
+    if (outOfStock) stockHTML = `<div class="stock-info out-stock">Out of Stock</div>`;
+    else if (lowStock) stockHTML = `<div class="stock-info low-stock">Only ${product.inventory.stock} left!</div>`;
+    else stockHTML = `<div class="stock-info in-stock">In Stock (${product.inventory.stock} units)</div>`;
+
+    document.getElementById('product-container').innerHTML = `
+          <div class="product-detail">
+        <div class="product-img-wrap">
+          <div class="img-box">
+            ${product.image
+              ? `<img src="http://127.0.0.1:8000${product.image}" alt="${product.name}" />`
+              : '🛍️'}
+          </div>
+        </div>
+        <div class="product-info">
+          <span class="category-tag">${product.category_name}</span>
+          <div class="product-name">${product.name}</div>
+          <div class="price-section">
+            <span class="discounted-price">₹${parseFloat(product.discounted_price).toLocaleString()}</span>
+            ${product.discount_percent > 0 ? `
+              <span class="original-price">₹${parseFloat(product.price).toLocaleString()}</span>
+              <span class="discount-badge">${product.discount_percent}% OFF</span>` : ''}
+          </div>
+          ${stockHTML}
+          <div class="description">${product.description || 'No description available.'}</div>
+          <div class="qty-row">
+            <label>Quantity:</label>
+            <div class="qty-control">
+              <button onclick="changeQty(-1)">−</button>
+              <span id="qty-display">1</span>
+              <button onclick="changeQty(1)">+</button>
+            </div>
+          </div>
+          <div class="action-btns">
+            <button class="btn-cart" id="btn-cart" onclick="doAddToCart()" ${outOfStock ? 'disabled' : ''}>
+              Add to Cart
+            </button>
+            <button class="btn-buy" id="btn-buy" onclick="doBuyNow()" ${outOfStock ? 'disabled' : ''}>
+              Buy Now
+            </button>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  loadProduct();
+  loadCartCount();
+</script>
+</body>
+</html>

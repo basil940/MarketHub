@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login — MarketHub</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: linear-gradient(135deg, #169b67 0%, #0d6b47 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    .card { background: white; border-radius: 16px; padding: 2.5rem; width: 100%; max-width: 440px; box-shadow: 0 10px 40px rgba(0,0,0,0.15); }
+    .logo { text-align: center; margin-bottom: 2rem; }
+    .logo h1 { font-size: 32px; font-weight: 800; color: #169b67; letter-spacing: -0.5px; }
+    .logo p { font-size: 14px; color: #999; margin-top: 6px; font-weight: 500; }
+    .tabs { display: flex; border-bottom: 2px solid #e8eaed; margin-bottom: 2rem; }
+    .tab { flex: 1; text-align: center; padding: 12px; font-size: 15px; cursor: pointer; color: #999; font-weight: 600; border-bottom: 3px solid transparent; margin-bottom: -2px; transition: all 0.3s; }
+    .tab:hover { color: #169b67; }
+    .tab.active { color: #169b67; border-bottom-color: #169b67; }
+    .form { display: none; flex-direction: column; gap: 14px; }
+    .form.active { display: flex; }
+    .form input { padding: 12px 14px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none; background: #f9f9f9; transition: all 0.3s; }
+    .form input:focus { border-color: #169b67; background: white; }
+    .form button { padding: 14px; background: #169b67; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 4px; }
+    .form button:hover { background: #138055; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(22, 155, 103, 0.3); }
+    .error { color: #ff6b6b; font-size: 13px; display: none; background: #ffe8e8; padding: 10px 12px; border-radius: 6px; margin-top: -4px; }
+    .success { color: #169b67; font-size: 13px; display: none; background: #e8f5f1; padding: 10px 12px; border-radius: 6px; margin-top: -4px; }
+    .divider { text-align: center; font-size: 13px; color: #999; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="card">
+  <div class="logo">
+    <h1>MarketHub</h1>
+    <p>Shop Smart, Save More</p>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('login')">Login</div>
+    <div class="tab" onclick="switchTab('register')">Register</div>
+  </div>
+
+  <!-- Login Form -->
+  <div class="form active" id="login-form">
+    <input type="text" id="login-username" placeholder="Username" />
+    <input type="password" id="login-password" placeholder="Password" />
+    <div class="error" id="login-error"></div>
+    <button onclick="doLogin()">Sign In</button>
+    <div class="divider">New here? Register above</div>
+  </div>
+
+  <!-- Register Form -->
+  <div class="form" id="register-form">
+    <input type="text" id="reg-username" placeholder="Username" />
+    <input type="email" id="reg-email" placeholder="Email" />
+    <input type="password" id="reg-password" placeholder="Password (min 6 chars)" />
+    <input type="text" id="reg-phone" placeholder="Phone (optional)" />
+    <div class="error" id="reg-error"></div>
+    <div class="success" id="reg-success"></div>
+    <button onclick="doRegister()">Create Account</button>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+  // Redirect if already logged in with a valid token
+  if (isLoggedIn()) window.location.replace('/');
+
+  function switchTab(tab) {
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', ['login','register'][i] === tab);
+    });
+    document.getElementById('login-form').classList.toggle('active', tab === 'login');
+    document.getElementById('register-form').classList.toggle('active', tab === 'register');
+  }
+
+  async function doLogin() {
+    const username = document.getElementById('login-username').value.trim();
+    const password = document.getElementById('login-password').value.trim();
+    const err = document.getElementById('login-error');
+    err.style.display = 'none';
+
+    if (!username || !password) {
+      err.textContent = 'Please fill in all fields';
+      err.style.display = 'block';
+      return;
+    }
+
+    const data = await login(username, password);
+    if (data.access) {
+      window.location.href = '/';
+    } else {
+      err.textContent = data.error || 'Login failed';
+      err.style.display = 'block';
+    }
+  }
+
+  async function doRegister() {
+    const username = document.getElementById('reg-username').value.trim();
+    const email = document.getElementById('reg-email').value.trim();
+    const password = document.getElementById('reg-password').value.trim();
+    const phone = document.getElementById('reg-phone').value.trim();
+    const err = document.getElementById('reg-error');
+    const success = document.getElementById('reg-success');
+    err.style.display = 'none';
+    success.style.display = 'none';
+
+    if (!username || !email || !password) {
+      err.textContent = 'Please fill in all required fields';
+      err.style.display = 'block';
+      return;
+    }
+
+    const data = await register(username, email, password, phone);
+    if (data.access) {
+      success.textContent = 'Account created! Redirecting...';
+      success.style.display = 'block';
+      setTimeout(() => window.location.href = '/', 1000);
+    } else {
+      const msg = Object.values(data)[0];
+      err.textContent = Array.isArray(msg) ? msg[0] : msg;
+      err.style.display = 'block';
+    }
+  }
+
+  // Enter key support
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      const loginActive = document.getElementById('login-form').classList.contains('active');
+      if (loginActive) doLogin(); else doRegister();
+    }
+  });
+</script>
+</body>
+</html>
