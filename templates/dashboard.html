@@ -155,6 +155,14 @@
       max-width: 620px;
     }
 
+    .hero-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
     .hero-pill {
       display: inline-flex;
       align-items: center;
@@ -166,6 +174,88 @@
       font-size: 0.95rem;
       border: 1px solid rgba(34,197,94,0.18);
       white-space: nowrap;
+    }
+
+    .range-switcher {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .range-button {
+      padding: 0.75rem 1rem;
+      border-radius: 999px;
+      border: 1px solid rgba(148,163,184,0.14);
+      background: rgba(148,163,184,0.08);
+      color: #cbd5e1;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.2s ease;
+    }
+
+    .range-button.active,
+    .range-button:hover {
+      background: rgba(125,211,252,0.18);
+      border-color: rgba(125,211,252,0.4);
+      color: #ffffff;
+    }
+
+    .comparison-pill {
+      padding: 0.85rem 1rem;
+      border-radius: 999px;
+      background: rgba(59,130,246,0.14);
+      color: #7dd3fc;
+      font-size: 0.9rem;
+      border: 1px solid rgba(125,211,252,0.16);
+    }
+
+    .comparison-pill.positive {
+      background: rgba(34,197,94,0.16);
+      color: #a7f3d0;
+      border-color: rgba(34,197,94,0.3);
+    }
+
+    .comparison-pill.negative {
+      background: rgba(248,113,113,0.16);
+      color: #fecaca;
+      border-color: rgba(248,113,113,0.28);
+    }
+
+    .stat-card {
+      background: rgba(15,23,42,0.88);
+      border: 1px solid var(--border);
+      border-radius: 1.25rem;
+      padding: 1.5rem;
+      color: #e2e8f0;
+      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+      position: relative;
+      overflow: hidden;
+      min-height: 140px;
+      transition: transform 0.25s ease, border-color 0.25s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(125,211,252,0.26);
+    }
+
+    .stat-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.95rem;
+    }
+
+    .stat-icon {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: rgba(125,211,252,0.16);
+      color: #7dd3fc;
+      font-size: 1rem;
     }
 
     .stats-grid {
@@ -434,22 +524,54 @@
 
 <div class="container">
 
+  <div class="dashboard-hero">
+    <div class="hero-copy">
+      <div class="hero-pill" id="hero-range-pill">7d View</div>
+      <h1>Live insights for MarketHub</h1>
+      <p>Track revenue, order volume, and live activity with range-based comparison and animated KPI cards.</p>
+    </div>
+    <div class="hero-actions">
+      <div class="range-switcher" role="tablist" aria-label="Dashboard time range">
+        <button class="range-button active" data-range="7">7d</button>
+        <button class="range-button" data-range="30">30d</button>
+        <button class="range-button" data-range="90">90d</button>
+      </div>
+      <div class="comparison-pill positive" id="comparison-pill">+0.0% vs previous period</div>
+    </div>
+  </div>
+
   <div class="stats-grid" id="stats-grid">
     <div class="stat-card green">
-      <div class="stat-label">Total Revenue</div>
-      <div class="stat-value" id="s-revenue">—</div>
+      <div class="stat-header">
+        <span class="stat-icon">💰</span>
+        <div class="stat-label">Total Revenue</div>
+      </div>
+      <div class="stat-value" id="s-revenue" data-current="0">₹0</div>
+      <div class="stat-sub" id="s-revenue-sub">Current period total</div>
     </div>
     <div class="stat-card blue">
-      <div class="stat-label">Total Orders</div>
-      <div class="stat-value" id="s-orders">—</div>
+      <div class="stat-header">
+        <span class="stat-icon">🛒</span>
+        <div class="stat-label">Total Orders</div>
+      </div>
+      <div class="stat-value" id="s-orders" data-current="0">0</div>
+      <div class="stat-sub">Orders in the selected range</div>
     </div>
     <div class="stat-card orange">
-      <div class="stat-label">Orders Today</div>
-      <div class="stat-value" id="s-orders-today">—</div>
+      <div class="stat-header">
+        <span class="stat-icon">📈</span>
+        <div class="stat-label">Orders Today</div>
+      </div>
+      <div class="stat-value" id="s-orders-today" data-current="0">0</div>
+      <div class="stat-sub">Current day orders</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">Pending Orders</div>
-      <div class="stat-value" id="s-pending">—</div>
+      <div class="stat-header">
+        <span class="stat-icon">⏳</span>
+        <div class="stat-label">Pending Orders</div>
+      </div>
+      <div class="stat-value" id="s-pending" data-current="0">0</div>
+      <div class="stat-sub">Orders awaiting processing</div>
     </div>
   </div>
 
@@ -492,9 +614,30 @@
 
   let revenueChart = null;
   let feedHasItems = false;
+  let selectedRange = 7;
 
   function timeAgo() {
     return new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  }
+
+  function animateNumber(el, value, prefix = '', decimals = 0) {
+    const start = parseFloat(el.dataset.current || '0');
+    const end = Number(value) || 0;
+    const duration = 700;
+    const startTime = performance.now();
+
+    function tick(now) {
+      const progress = Math.min((now - startTime) / duration, 1);
+      const current = start + (end - start) * progress;
+      el.textContent = prefix + current.toLocaleString('en-IN', { maximumFractionDigits: decimals });
+      if (progress < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        el.dataset.current = end;
+      }
+    }
+
+    requestAnimationFrame(tick);
   }
 
   function addFeedItem(html) {
@@ -530,7 +673,7 @@
           <div class="feed-time">${timeAgo()}</div>
         </div>`);
     }
-    loadStats(); // refresh stats on every event
+    loadStats(selectedRange); // refresh stats on every event
   }
 
   // ── WebSocket connection ──
@@ -556,8 +699,8 @@
   }
 
   // ── Stats ──
-  async function loadStats() {
-    const res = await fetch('/api/dashboard/stats/', { headers: authHeaders() });
+  async function loadStats(range = selectedRange) {
+    const res = await fetch(`/api/dashboard/stats/?range=${range}`, { headers: authHeaders() });
     if (!res.ok) {
       if (res.status === 403) {
         document.querySelector('.container').innerHTML = '<div class="loading">Access denied. Admins only.</div>';
@@ -566,10 +709,13 @@
     }
     const data = await res.json();
 
-    document.getElementById('s-revenue').textContent = '₹' + data.total_revenue.toLocaleString('en-IN', {maximumFractionDigits: 0});
-    document.getElementById('s-orders').textContent = data.total_orders;
-    document.getElementById('s-orders-today').textContent = data.orders_today;
-    document.getElementById('s-pending').textContent = data.pending_orders;
+    animateNumber(document.getElementById('s-revenue'), data.range_revenue, '₹', 0);
+    animateNumber(document.getElementById('s-orders'), data.range_orders, '', 0);
+    animateNumber(document.getElementById('s-orders-today'), data.orders_today, '', 0);
+    animateNumber(document.getElementById('s-pending'), data.pending_orders, '', 0);
+    document.getElementById('s-revenue-sub').textContent = `Revenue for last ${range} days`;
+    updateComparison(data);
+    document.querySelector('.panel h3').textContent = `Revenue — Last ${range} Days`;
 
     // Chart
     const labels = data.revenue_chart.map(d => d.date);
@@ -588,8 +734,8 @@
           datasets: [{
             label: 'Revenue (₹)',
             data: values,
-            borderColor: '#169b67',
-            backgroundColor: 'rgba(22,155,103,0.08)',
+            borderColor: '#7dd3fc',
+            backgroundColor: 'rgba(125,211,252,0.14)',
             fill: true,
             tension: 0.35,
             pointRadius: 3,
@@ -598,8 +744,18 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: { y: { beginAtZero: true } }
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              callbacks: {
+                label: ctx => `₹${Number(ctx.parsed.y).toLocaleString('en-IN')}`
+              }
+            }
+          },
+          scales: {
+            x: { ticks: { color: '#94a3b8' } },
+            y: { beginAtZero: true, ticks: { color: '#94a3b8' } }
+          }
         }
       });
     }
@@ -633,9 +789,10 @@
     }
   }
 
+  initRangeControls();
   loadStats();
   connectWS();
-  setInterval(loadStats, 15000); // refresh every 15s as fallback
+  setInterval(() => loadStats(selectedRange), 15000); // refresh every 15s as fallback
 </script>
 </body>
 </html>

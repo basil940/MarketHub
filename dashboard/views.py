@@ -16,7 +16,16 @@ class DashboardStatsView(APIView):
 
     def get(self, request):
         today = timezone.now().date()
-        last_7_days = timezone.now() - timedelta(days=7)
+        try:
+            range_days = int(request.query_params.get('range', 7))
+        except (TypeError, ValueError):
+            range_days = 7
+        if range_days not in (7, 30, 90):
+            range_days = 7
+
+        start_date = today - timedelta(days=range_days - 1)
+        prev_start = start_date - timedelta(days=range_days)
+        prev_end = start_date - timedelta(days=1)
 
         total_revenue = Order.objects.filter(
             payment_status='paid'
@@ -36,8 +45,28 @@ class DashboardStatsView(APIView):
 
         pending_orders = Order.objects.filter(status='pending').count()
 
+        current_revenue = Order.objects.filter(
+            payment_status='paid',
+            created_at__date__range=(start_date, today)
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+        range_orders = Order.objects.filter(
+            created_at__date__range=(start_date, today)
+        ).count()
+
+        previous_revenue = Order.objects.filter(
+            payment_status='paid',
+            created_at__date__range=(prev_start, prev_end)
+        ).aggregate(total=Sum('total_amount'))['total'] or 0
+
+        comparison_revenue = float(current_revenue) - float(previous_revenue)
+        if previous_revenue:
+            comparison_pct = (comparison_revenue / float(previous_revenue)) * 100
+        else:
+            comparison_pct = 0.0
+
         revenue_chart = []
-        for i in range(6, -1, -1):
+        for i in range(range_days - 1, -1, -1):
             day = today - timedelta(days=i)
             rev = Order.objects.filter(
                 created_at__date=day,
@@ -66,12 +95,17 @@ class DashboardStatsView(APIView):
         } for o in recent_orders]
 
         return Response({
+            'range_days': range_days,
             'total_revenue': float(total_revenue),
             'total_orders': total_orders,
             'total_users': total_users,
             'orders_today': orders_today,
             'revenue_today': float(revenue_today),
             'pending_orders': pending_orders,
+            'range_revenue': float(current_revenue),
+            'range_orders': range_orders,
+            'comparison_revenue': comparison_revenue,
+            'comparison_pct': round(comparison_pct, 1),
             'revenue_chart': revenue_chart,
             'top_products': list(top_products),
             'recent_orders': recent_list,
