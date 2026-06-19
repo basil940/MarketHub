@@ -265,18 +265,6 @@
       gap: 1rem;
     }
 
-    .stat-card {
-      background: rgba(15,23,42,0.88);
-      border: 1px solid var(--border);
-      border-radius: 1.25rem;
-      padding: 1.5rem;
-      color: #e2e8f0;
-      box-shadow: 0 18px 40px rgba(0,0,0,0.12);
-      position: relative;
-      overflow: hidden;
-      min-height: 140px;
-    }
-
     .stat-card::before {
       content: '';
       position: absolute;
@@ -329,6 +317,7 @@
       border-radius: 24px;
       padding: 1.75rem;
       box-shadow: 0 24px 48px rgba(0,0,0,0.16);
+      margin-bottom: 1.5rem;
     }
 
     .panel h3 {
@@ -340,6 +329,7 @@
 
     .chart-wrap {
       height: 280px;
+      position: relative;
     }
 
     .top-product-row {
@@ -577,7 +567,7 @@
 
   <div>
     <div class="panel">
-      <h3>Revenue — Last 7 Days</h3>
+      <h3 id="revenue-panel-title">Revenue — Last 7 Days</h3>
       <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
     </div>
 
@@ -651,7 +641,6 @@
     div.innerHTML = html;
     feed.insertBefore(div, feed.firstChild);
 
-    // keep max 30 items
     while (feed.children.length > 30) {
       feed.removeChild(feed.lastChild);
     }
@@ -673,7 +662,7 @@
           <div class="feed-time">${timeAgo()}</div>
         </div>`);
     }
-    loadStats(selectedRange); // refresh stats on every event
+    loadStats(selectedRange);
   }
 
   // ── WebSocket connection ──
@@ -698,6 +687,35 @@
     ws.onerror = () => ws.close();
   }
 
+  // ── Comparison pill ──
+  function updateComparison(data) {
+    const pill = document.getElementById('comparison-pill');
+    const pct = data.comparison_pct ?? 0;
+    const sign = pct > 0 ? '+' : '';
+    pill.textContent = `${sign}${pct}% vs previous period`;
+    pill.classList.remove('positive', 'negative');
+    if (pct > 0) pill.classList.add('positive');
+    else if (pct < 0) pill.classList.add('negative');
+  }
+
+  // ── Range button controls ──
+  function initRangeControls() {
+    const buttons = document.querySelectorAll('.range-button');
+    buttons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const range = parseInt(btn.dataset.range, 10);
+        selectedRange = range;
+
+        buttons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+
+        document.getElementById('hero-range-pill').textContent = `${range}d View`;
+
+        loadStats(range);
+      });
+    });
+  }
+
   // ── Stats ──
   async function loadStats(range = selectedRange) {
     const res = await fetch(`/api/dashboard/stats/?range=${range}`, { headers: authHeaders() });
@@ -714,8 +732,8 @@
     animateNumber(document.getElementById('s-orders-today'), data.orders_today, '', 0);
     animateNumber(document.getElementById('s-pending'), data.pending_orders, '', 0);
     document.getElementById('s-revenue-sub').textContent = `Revenue for last ${range} days`;
+    document.getElementById('revenue-panel-title').textContent = `Revenue — Last ${range} Days`;
     updateComparison(data);
-    document.querySelector('.panel h3').textContent = `Revenue — Last ${range} Days`;
 
     // Chart
     const labels = data.revenue_chart.map(d => d.date);
@@ -790,7 +808,7 @@
   }
 
   initRangeControls();
-  loadStats();
+  loadStats(selectedRange);
   connectWS();
   setInterval(() => loadStats(selectedRange), 15000); // refresh every 15s as fallback
 </script>
